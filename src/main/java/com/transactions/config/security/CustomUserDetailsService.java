@@ -2,28 +2,27 @@ package com.transactions.config.security;
 
 import com.transactions.model.User;
 import com.transactions.repository.UserRepo;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepo userRepository;
+  private final UserRepo userRepository;
 
-    public CustomUserDetailsService(UserRepo repo) {
-        this.userRepository = repo;
-    }
+  public CustomUserDetailsService(UserRepo repo) {
+    this.userRepository = repo;
+  }
 
-    @Override
-    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  @Override
+  public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+    User user =
+        userRepository
+            .findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return new UserPrincipal(user);
-    }
+    return new UserPrincipal(user);
+  }
 }

@@ -5,193 +5,133 @@ import com.transactions.model.User;
 import com.transactions.payload.request.RoleRequest;
 import com.transactions.payload.request.UserRequest;
 import com.transactions.payload.response.auth.RoleResponse;
-import com.transactions.payload.response.user.UserResponse;
 import com.transactions.payload.response.base.ApiResponse;
+import com.transactions.payload.response.user.UserResponse;
 import com.transactions.repository.RoleRepo;
 import com.transactions.repository.UserRepo;
 import com.transactions.service.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepo userRepo;
-    private final RoleRepo roleRepo;
+  private final UserRepo userRepo;
+  private final RoleRepo roleRepo;
 
+  @Override
+  public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUser() {
+    List<User> users = userRepo.findAll();
 
-    @Override
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUser() {
-        List<User> users = userRepo.findAll();
+    List<UserResponse> responseList =
+        users.stream().map(this::toUserResponse).collect(Collectors.toList());
 
-        List<UserResponse> responseList = users.stream()
-                .map(this::toUserResponse)
-                .collect(Collectors.toList());
+    return ResponseEntity.ok(new ApiResponse<>(true, "Get All User successfully", 0, responseList));
+  }
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Get All User successfully",
-                        0,
-                        responseList
-                )
-        );
+  @Override
+  public ResponseEntity<ApiResponse<UserResponse>> getUserById(UUID id) {
+
+    Optional<User> user = userRepo.findById(id);
+    if (user.isEmpty()) {
+      return new ResponseEntity<>(
+          new ApiResponse<>(false, "User Not Found", 404, null), HttpStatus.BAD_REQUEST);
     }
 
-    @Override
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(UUID id) {
+    return ResponseEntity.ok(
+        new ApiResponse<>(true, "Get User By Id successfully", 0, toUserResponse(user.get())));
+  }
 
-        Optional<User> user = userRepo.findById(id);
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(
-                    new ApiResponse<>(
-                            false,
-                            "User Not Found",
-                            404,
-                            null
-                    ), HttpStatus.BAD_REQUEST
-            );
-        }
+  @Override
+  public ResponseEntity<ApiResponse<UserResponse>> updateUserById(UUID id, UserRequest request) {
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Get User By Id successfully",
-                        0,
-                        toUserResponse(user.get())
-                )
-        );
+    Optional<User> user = userRepo.findById(id);
+    if (user.isEmpty()) {
+      return new ResponseEntity<>(
+          new ApiResponse<>(false, "Update User Failed, User Not Found", 404, null),
+          HttpStatus.BAD_REQUEST);
     }
 
-    @Override
-    public ResponseEntity<ApiResponse<UserResponse>> updateUserById(UUID id, UserRequest request) {
+    if (null != request.getEmail()) user.get().setEmail(request.getEmail());
+    if (null != request.getName()) user.get().setName(request.getName());
+    if (null != request.getUsername()) user.get().setUsername(request.getUsername());
+    if (null != request.getBirthdate()) user.get().setBirthdate(request.getBirthdate());
+    if (null != request.getBirthplace()) user.get().setBirthplace(request.getBirthplace());
+    if (null != request.getIsDeleted()) user.get().setIsDeleted(request.getIsDeleted());
 
-        Optional<User> user = userRepo.findById(id);
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(
-                    new ApiResponse<>(
-                            false,
-                            "Update User Failed, User Not Found",
-                            404,
-                            null
-                    ), HttpStatus.BAD_REQUEST
-            );
-        }
+    user.get().setUpdatedAt(LocalDateTime.now());
+    userRepo.save(user.get());
 
-        if (null != request.getEmail()) user.get().setEmail(request.getEmail());
-        if (null != request.getName()) user.get().setName(request.getName());
-        if (null != request.getUsername()) user.get().setUsername(request.getUsername());
-        if (null != request.getBirthdate()) user.get().setBirthdate(request.getBirthdate());
-        if (null != request.getBirthplace()) user.get().setBirthplace(request.getBirthplace());
-        if (null != request.getIsDeleted()) user.get().setIsDeleted(request.getIsDeleted());
+    return ResponseEntity.ok(
+        new ApiResponse<>(true, "Update User successfully", 0, toUserResponse(user.get())));
+  }
 
-        user.get().setUpdatedAt(LocalDateTime.now());
-        userRepo.save(user.get());
+  @Override
+  public ResponseEntity<ApiResponse<UserResponse>> deleteUserById(UUID id) {
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Update User successfully",
-                        0,
-                        toUserResponse(user.get())
-                )
-        );
+    Optional<User> user = userRepo.findById(id);
+    if (user.isEmpty()) {
+      return new ResponseEntity<>(
+          new ApiResponse<>(false, "Delete User Failed, User Not Found", 404, null),
+          HttpStatus.BAD_REQUEST);
     }
 
-    @Override
-    public ResponseEntity<ApiResponse<UserResponse>> deleteUserById(UUID id) {
+    user.get().setIsDeleted(true);
+    userRepo.save(user.get());
 
-        Optional<User> user = userRepo.findById(id);
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(
-                    new ApiResponse<>(
-                            false,
-                            "Delete User Failed, User Not Found",
-                            404,
-                            null
-                    ), HttpStatus.BAD_REQUEST
-            );
-        }
+    return ResponseEntity.ok(
+        new ApiResponse<>(true, "Delete User successfully", 0, toUserResponse(user.get())));
+  }
 
-        user.get().setIsDeleted(true);
-        userRepo.save(user.get());
+  @Override
+  public ResponseEntity<ApiResponse<RoleResponse>> createRole(RoleRequest request) {
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Delete User successfully",
-                        0,
-                        toUserResponse(user.get())
-                )
-        );
-    }
+    Role role = new Role();
+    role.setName(request.getName());
 
-    @Override
-    public ResponseEntity<ApiResponse<RoleResponse>> createRole(RoleRequest request) {
+    roleRepo.save(role);
+    return ResponseEntity.ok(
+        new ApiResponse<>(true, "Create Role successfully", 0, toRoleResponse(role)));
+  }
 
-        Role role = new Role();
-        role.setName(request.getName());
+  @Override
+  public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRole() {
 
-        roleRepo.save(role);
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Create Role successfully",
-                        0,
-                        toRoleResponse(role)
-                )
-        );
-    }
+    List<Role> roles = roleRepo.findAll();
 
-    @Override
-    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRole() {
+    List<RoleResponse> responseList =
+        roles.stream().map(this::toRoleResponse).collect(Collectors.toList());
 
-        List<Role> roles = roleRepo.findAll();
+    return ResponseEntity.ok(new ApiResponse<>(true, "Get All Role successfully", 0, responseList));
+  }
 
-        List<RoleResponse> responseList = roles.stream()
-                .map(this::toRoleResponse)
-                .collect(Collectors.toList());
+  private UserResponse toUserResponse(User user) {
+    return UserResponse.builder()
+        .id(user.getId())
+        .username(user.getUsername())
+        .email(user.getEmail())
+        .name(user.getName())
+        .birthdate(user.getBirthdate())
+        .birthplace(user.getBirthplace())
+        .isDeleted(user.getIsDeleted())
+        .createdAt(user.getCreatedAt())
+        .createdBy(user.getCreatedBy())
+        .updatedAt(user.getUpdatedAt())
+        .updatedBy(user.getUpdatedBy())
+        .build();
+  }
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Get All Role successfully",
-                        0,
-                        responseList
-                )
-        );
-    }
-
-    private UserResponse toUserResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .name(user.getName())
-                .birthdate(user.getBirthdate())
-                .birthplace(user.getBirthplace())
-                .isDeleted(user.getIsDeleted())
-                .createdAt(user.getCreatedAt())
-                .createdBy(user.getCreatedBy())
-                .updatedAt(user.getUpdatedAt())
-                .updatedBy(user.getUpdatedBy())
-                .build();
-    }
-
-    private RoleResponse toRoleResponse(Role role) {
-        return RoleResponse.builder()
-                .id(role.getId())
-                .name(role.getName())
-                .build();
-    }
+  private RoleResponse toRoleResponse(Role role) {
+    return RoleResponse.builder().id(role.getId()).name(role.getName()).build();
+  }
 }

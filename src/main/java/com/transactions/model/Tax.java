@@ -1,10 +1,9 @@
 package com.transactions.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Table(name = "tax")
@@ -15,13 +14,11 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Tax {
 
-    @Id
-    @GeneratedValue
-    private UUID id;
+  @Id @GeneratedValue private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+  @Column(nullable = false, unique = true)
+  private String name;
 
-    @Column(nullable = false)
-    private BigDecimal percentage;
+  @Column(nullable = false)
+  private BigDecimal percentage;
 }

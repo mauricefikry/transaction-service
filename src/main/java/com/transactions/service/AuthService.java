@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface AuthService {
 
-    ResponseEntity<ApiResponse<LoginResponse>> signIn(LoginRequest request);
-    ResponseEntity<ApiResponse<SignUpResponse>> signUp(SignUpRequest request);
+  ResponseEntity<ApiResponse<LoginResponse>> signIn(LoginRequest request);
+
+  ResponseEntity<ApiResponse<SignUpResponse>> signUp(SignUpRequest request);
 }

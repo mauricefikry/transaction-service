@@ -1,11 +1,11 @@
 package com.transactions.payload.request;
 
-import lombok.Data;
 import java.math.BigDecimal;
+import lombok.Data;
 
 @Data
 public class TaxRequest {
 
-    private String name;
-    private BigDecimal percentage;
+  private String name;
+  private BigDecimal percentage;
 }

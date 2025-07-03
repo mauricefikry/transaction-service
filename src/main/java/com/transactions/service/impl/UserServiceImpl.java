@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,8 +32,7 @@ public class UserServiceImpl implements UserService {
   public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUser() {
     List<User> users = userRepo.findAll();
 
-    List<UserResponse> responseList =
-        users.stream().map(this::toUserResponse).collect(Collectors.toList());
+    List<UserResponse> responseList = users.stream().map(this::toUserResponse).toList();
 
     return ResponseEntity.ok(new ApiResponse<>(true, "Get All User successfully", 0, responseList));
   }
@@ -109,8 +107,7 @@ public class UserServiceImpl implements UserService {
 
     List<Role> roles = roleRepo.findAll();
 
-    List<RoleResponse> responseList =
-        roles.stream().map(this::toRoleResponse).collect(Collectors.toList());
+    List<RoleResponse> responseList = roles.stream().map(this::toRoleResponse).toList();
 
     return ResponseEntity.ok(new ApiResponse<>(true, "Get All Role successfully", 0, responseList));
   }

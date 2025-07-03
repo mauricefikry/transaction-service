@@ -34,8 +34,7 @@ public class ProductServiceImpl implements ProductService {
   public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProduct() {
     List<Product> products = productRepo.findAll();
 
-    List<ProductResponse> responseList =
-        products.stream().map(this::toProductResponse).collect(Collectors.toList());
+    List<ProductResponse> responseList = products.stream().map(this::toProductResponse).toList();
 
     return ResponseEntity.ok(
         new ApiResponse<>(true, "Get All Products successfully", 0, responseList));
@@ -44,14 +43,17 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public ResponseEntity<ApiResponse<ProductResponse>> getProductById(UUID id) {
     Optional<Product> product = productRepo.findById(id);
-    if (product.isEmpty()) {
-      return new ResponseEntity<>(
-          new ApiResponse<>(false, "Product Not Found", 404, null), HttpStatus.BAD_REQUEST);
-    }
-
-    return ResponseEntity.ok(
-        new ApiResponse<>(
-            true, "Get User By Id successfully", 0, toProductResponse(product.get())));
+    return product
+        .map(
+            value ->
+                ResponseEntity.ok(
+                    new ApiResponse<>(
+                        true, "Get User By Id successfully", 0, toProductResponse(value))))
+        .orElseGet(
+            () ->
+                new ResponseEntity<>(
+                    new ApiResponse<>(false, "Product Not Found", 404, null),
+                    HttpStatus.BAD_REQUEST));
   }
 
   @Override
@@ -123,8 +125,7 @@ public class ProductServiceImpl implements ProductService {
   public ResponseEntity<ApiResponse<List<TaxResponse>>> getAllTax() {
 
     List<Tax> taxes = taxRepo.findAll();
-    List<TaxResponse> responseList =
-        taxes.stream().map(this::toTaxResponse).collect(Collectors.toList());
+    List<TaxResponse> responseList = taxes.stream().map(this::toTaxResponse).toList();
 
     return ResponseEntity.ok(new ApiResponse<>(true, "Get All Tax successfully", 0, responseList));
   }

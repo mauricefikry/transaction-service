@@ -56,17 +56,14 @@ public class TransactionServiceImpl implements TransactionService {
   public ResponseEntity<ApiResponse<TransactionResponse>> getTransactionById(UUID id) {
 
     Optional<Transaction> transaction = transactionRepo.findById(id);
-    if (transaction.isEmpty()) {
-      return new ResponseEntity<>(
-          new ApiResponse<>(false, "Get Transaction By Id Failed, Id Not Found", 404, null),
-          HttpStatus.BAD_REQUEST);
-    }
-    return ResponseEntity.ok(
-        new ApiResponse<>(
-            true,
-            "Get Transaction By Id successfully",
-            0,
-            toTransactionResponse(transaction.get())));
+      return transaction.map(value -> ResponseEntity.ok(
+              new ApiResponse<>(
+                      true,
+                      "Get Transaction By Id successfully",
+                      0,
+                      toTransactionResponse(value)))).orElseGet(() -> new ResponseEntity<>(
+              new ApiResponse<>(false, "Get Transaction By Id Failed, Id Not Found", 404, null),
+              HttpStatus.BAD_REQUEST));
   }
 
   @Override
